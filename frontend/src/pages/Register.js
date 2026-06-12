@@ -18,7 +18,7 @@ export default function Register() {
   };
   return (
     <div className="container">
-      <h2>Create Account</h2>
+      <h2>Create Account Under Rajkumar Company</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group"><label>Full Name</label><input name="name" placeholder="John Doe" value={form.name} onChange={handleChange} required /></div>
         <div className="form-group"><label>Email</label><input name="email" type="email" placeholder="john@example.com" value={form.email} onChange={handleChange} required /></div>
