@@ -4,7 +4,7 @@ pipeline {
     DOCKERHUB_USER = 'rajkumar179'
     BACKEND_IMAGE  = "${DOCKERHUB_USER}/userapp-backend"
     FRONTEND_IMAGE = "${DOCKERHUB_USER}/userapp-frontend"
-    EC2_HOST       = '13.233.119.129'
+    EC2_HOST       = '65.2.80.213'
     EC2_USER       = 'ec2-user'
   }
   stages {
