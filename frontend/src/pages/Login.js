@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-const API = process.env.REACT_APP_API_URL || 'http://192.168.0.35:5000';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');

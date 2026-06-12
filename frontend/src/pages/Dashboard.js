@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-const API = process.env.REACT_APP_API_URL || 'http://192.168.0.35:5000';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 export default function Dashboard() {
   const { token, user, logout } = useAuth();
   const navigate = useNavigate();

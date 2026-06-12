@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-const API = process.env.REACT_APP_API_URL || 'http://192.168.0.35:5000';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
