@@ -2,11 +2,11 @@ pipeline {
   agent any
 
   environment {
-    DOCKERHUB_USER = 'yourdockerhubusername'
+    DOCKERHUB_USER = 'rajkumar179'
     BACKEND_IMAGE  = "${DOCKERHUB_USER}/userapp-backend"
     FRONTEND_IMAGE = "${DOCKERHUB_USER}/userapp-frontend"
-    EC2_HOST       = 'your-ec2-app-server-ip'
-    EC2_USER       = 'ubuntu'
+    EC2_HOST       = '13.233.119.129'
+    EC2_USER       = 'ec2-user'
   }
 
   stages {
