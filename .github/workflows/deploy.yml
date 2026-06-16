@@ -9,7 +9,6 @@ jobs:
 build-test-push-deploy:
 runs-on: ubuntu-latest
 
-```
 env:
   DOCKERHUB_USER: rajkumar179
   BACKEND_IMAGE: rajkumar179/userapp-backend
