@@ -1,84 +1,82 @@
 name: CI-CD Pipeline
 
 on:
-push:
-branches:
-- main
+  push:
+    branches:
+      - main
 
 jobs:
-build-test-push-deploy:
-runs-on: ubuntu-latest
+  build-test-push-deploy:
+    runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USER: rajkumar179
+      BACKEND_IMAGE: rajkumar179/userapp-backend
+      FRONTEND_IMAGE: rajkumar179/userapp-frontend
 
-env:
-  DOCKERHUB_USER: rajkumar179
-  BACKEND_IMAGE: rajkumar179/userapp-backend
-  FRONTEND_IMAGE: rajkumar179/userapp-frontend
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
 
-steps:
-  - name: Checkout Source Code
-    uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-  - name: Setup Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: 18
+      - name: Test Backend
+        run: |
+          cd backend
+          npm install
+          npm test || echo "No tests configured, skipping"
 
-  - name: Test Backend
-    run: |
-      cd backend
-      npm install
-      npm test || echo "No tests configured, skipping"
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-  - name: Login to Docker Hub
-    uses: docker/login-action@v3
-    with:
-      username: ${{ secrets.DOCKER_USERNAME }}
-      password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build Backend Image
+        run: |
+          docker build \
+            -t $BACKEND_IMAGE:${{ github.run_number }} \
+            -t $BACKEND_IMAGE:latest \
+            ./backend
 
-  - name: Build Backend Image
-    run: |
-      docker build \
-        -t $BACKEND_IMAGE:${{ github.run_number }} \
-        -t $BACKEND_IMAGE:latest \
-        ./backend
+      - name: Build Frontend Image
+        run: |
+          docker build \
+            --build-arg REACT_APP_API_URL=http://${{ secrets.EC2_HOST }}:5000 \
+            -t $FRONTEND_IMAGE:${{ github.run_number }} \
+            -t $FRONTEND_IMAGE:latest \
+            ./frontend
 
-  - name: Build Frontend Image
-    run: |
-      docker build \
-        --build-arg REACT_APP_API_URL=http://${{ secrets.EC2_HOST }}:5000 \
-        -t $FRONTEND_IMAGE:${{ github.run_number }} \
-        -t $FRONTEND_IMAGE:latest \
-        ./frontend
+      - name: Push Backend Image
+        run: |
+          docker push $BACKEND_IMAGE:${{ github.run_number }}
+          docker push $BACKEND_IMAGE:latest
 
-  - name: Push Backend Image
-    run: |
-      docker push $BACKEND_IMAGE:${{ github.run_number }}
-      docker push $BACKEND_IMAGE:latest
+      - name: Push Frontend Image
+        run: |
+          docker push $FRONTEND_IMAGE:${{ github.run_number }}
+          docker push $FRONTEND_IMAGE:latest
 
-  - name: Push Frontend Image
-    run: |
-      docker push $FRONTEND_IMAGE:${{ github.run_number }}
-      docker push $FRONTEND_IMAGE:latest
+      - name: Configure SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
-  - name: Configure SSH Key
-    run: |
-      mkdir -p ~/.ssh
-      echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
+      - name: Copy Deployment Files
+        run: |
+          scp -o StrictHostKeyChecking=no docker-compose.yml \
+          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/
+          scp -o StrictHostKeyChecking=no backend/init.sql \
+          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/
 
-  - name: Copy Deployment Files
-    run: |
-      scp -o StrictHostKeyChecking=no docker-compose.yml \
-      ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/
-
-      scp -o StrictHostKeyChecking=no backend/init.sql \
-      ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/
-
-  - name: Deploy to EC2
-    run: |
-      ssh -o StrictHostKeyChecking=no \
-      ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-        docker-compose pull &&
-        docker-compose up -d --remove-orphans &&
-        docker image prune -f
-      
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            docker-compose pull &&
+            docker-compose up -d --remove-orphans &&
+            docker image prune -f
+          '
